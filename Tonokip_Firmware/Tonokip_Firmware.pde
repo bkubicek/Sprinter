@@ -260,7 +260,8 @@ void setup()
   digitalWrite(MAX6675_SS,1);
   pinMode(MAX6675_SS,OUTPUT);
 #endif  
- 
+	memset(cmdbuffer,0,BUFSIZE*MAX_CMD_SIZE);
+  lcd_init();
 #ifdef SDSUPPORT
 
   //power to SD reader
@@ -271,8 +272,7 @@ void setup()
   initsd();
 
 #endif
-  lcd_init();
-  memset(cmdbuffer,0,BUFSIZE*MAX_CMD_SIZE);
+	
 }
 
 
@@ -284,7 +284,6 @@ void loop()
   static int cnter=0;
   if((cnter++)%10000==0) lcd_status();
 #endif
-        
   if(buflen){
 #ifdef SDSUPPORT
     if(savetosd){
@@ -1076,7 +1075,7 @@ void linear_move(unsigned long x_steps_remaining, unsigned long y_steps_remainin
   previous_micros_y = previous_micros_x;
   previous_micros_z = previous_micros_x;
   previous_micros_e = previous_micros_x;
-  
+
   //move until no more steps remain 
   while(x_steps_remaining + y_steps_remaining + z_steps_remaining + e_steps_remaining > 0) {
     //If more that HEATER_CHECK_INTERVAL ms have passed since previous heating check, adjust temp

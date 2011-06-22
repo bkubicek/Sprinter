@@ -3,11 +3,14 @@
 
 // NO RS485/EXTRUDER CONTROLLER SUPPORT
 // PLEASE VERIFY PIN ASSIGNMENTS FOR YOUR CONFIGURATION!!!!!!!
-#define MOTHERBOARD 3 // ATMEGA168 = 0, SANGUINO = 1, MOTHERBOARD = 2, MEGA/RAMPS = 3, ATMEGA328 = 4, Gen6 = 5, Sanguinololu = 6 
+// ATMEGA168 = 0, SANGUINO = 1, MOTHERBOARD = 2, MEGA/RAMPS = 3
+// ATMEGA328 = 4, Gen6 = 5, Sanguinololu = 6 , Ultimaker_PCB_1.5.3= 7
+
+#define MOTHERBOARD 7
 
 //Comment out to disable SD support
-#define SDSUPPORT 0
-#define FANCY_LCD
+//#define SDSUPPORT 0
+//#define FANCY_LCD
 
 //Min step delay in microseconds. If you are experiencing missing steps, try to raise the delay microseconds, but be aware this
 // If you enable this, make sure STEP_DELAY_RATIO is disabled.
@@ -25,9 +28,9 @@
 
 //Acceleration settings
 #ifdef RAMP_ACCELERATION
-float min_units_per_second = 20.0; // the minimum feedrate
-long max_acceleration_units_per_sq_second = 10; // Max acceleration in mm/s^2 for printing moves
-long max_travel_acceleration_units_per_sq_second = 10; // Max acceleration in mm/s^2 for travel moves
+float min_units_per_second = 35.0; // the minimum feedrate
+long max_acceleration_units_per_sq_second = 1500; // Max acceleration in mm/s^2 for printing moves
+long max_travel_acceleration_units_per_sq_second = 3000; // Max acceleration in mm/s^2 for travel moves
 #endif
 #ifdef EXP_ACCELERATION
 float full_velocity_units = 10; // the units between minimum and G1 move feedrate
@@ -53,6 +56,7 @@ float min_constant_speed_units = 2; // the minimum units of an accelerated move 
 
 //How often should the heater check for new temp readings, in milliseconds
 #define HEATER_CHECK_INTERVAL 50
+#define LCD_UPDATE_INTERVAL 500
 #define BED_CHECK_INTERVAL 5000
 
 //Experimental temperature smoothing - only uncomment this if your temp readings are noisy
@@ -91,7 +95,7 @@ float x_steps_per_unit = 79.87220447;
 float y_steps_per_unit = 79.87220447;
 float z_steps_per_unit = 200*8/3.;
 float e_steps_per_unit = 14;
-float max_feedrate = 5000; //mmm, acceleration!
+float max_feedrate = 50000; //mmm, acceleration!
 float max_z_feedrate = 350;
 
 //For SAE Prusa mendeel float z_steps_per_unit = should be 3200/1.411 for 5/16-18 rod and 3200/1.058 for 5/16-24
@@ -102,10 +106,10 @@ float max_z_feedrate = 350;
 //float max_feedrate = 3000;
 
 //For Inverting Stepper Enable Pins (Active Low) use 0, Non Inverting (Active High) use 1
-const bool X_ENABLE_ON = 1;
-const bool Y_ENABLE_ON = 1;
-const bool Z_ENABLE_ON = 1;
-const bool E_ENABLE_ON = 1;
+const bool X_ENABLE_ON = 0;
+const bool Y_ENABLE_ON = 0;
+const bool Z_ENABLE_ON = 0;
+const bool E_ENABLE_ON = 0;
 
 //Disables axis when it's not being used.
 const bool DISABLE_X = false;
@@ -113,7 +117,7 @@ const bool DISABLE_Y = false;
 const bool DISABLE_Z = false;
 const bool DISABLE_E = false;
 
-const bool INVERT_X_DIR = false;
+const bool INVERT_X_DIR = true;
 const bool INVERT_Y_DIR = false;
 const bool INVERT_Z_DIR = true;
 const bool INVERT_E_DIR = false;
@@ -143,7 +147,7 @@ const int Z_HOME_DIR = -1;
 
 //Endstop Settings
 #define ENDSTOPPULLUPS 1
-const bool ENDSTOPS_INVERTING = false;
+const bool ENDSTOPS_INVERTING = true;
 const bool min_software_endstops = false; //If true, axis won't move to coordinates less than zero.
 const bool max_software_endstops = false;  //If true, axis won't move to coordinates greater than the defined lengths below.
 const int X_MAX_LENGTH = 220;

@@ -1,12 +1,23 @@
 #include "lcd.h"
-#ifdef FANCY_LCD
-#include <LiquidCrystal.h>
 #include "pins.h"
 
-LiquidCrystal lcd(LCD_PINS_RS, LCD_PINS_ENABLE, LCD_PINS_D4, LCD_PINS_D5,LCD_PINS_D6,LCD_PINS_D7);  //RS,Enable,D4,D5,D6,D7 
+#ifdef FANCY_LCD
+ #include <LiquidCrystal.h>
+ LiquidCrystal lcd(LCD_PINS_RS, LCD_PINS_ENABLE, LCD_PINS_D4, LCD_PINS_D5,LCD_PINS_D6,LCD_PINS_D7);  //RS,Enable,D4,D5,D6,D7 
+ 
+ unsigned long previous_millis_lcd=0;
+#endif
+
+
+
+
 
 void lcd_status()
 {
+#ifdef FANCY_LCD
+	if((millis() - previous_millis_lcd) < LCD_UPDATE_INTERVAL)
+    return;
+  previous_millis_lcd = millis();
 	
 	String line1;
 	static char blink=0;
@@ -14,48 +25,53 @@ void lcd_status()
 	line1 += int(analog2temp(current_raw));
 	line1 += "/";
 	line1 += int(analog2temp(target_raw));
-	line1 += "\1,";
-	line1 += int(analog2tempBed(current_bed_raw));
-	line1 +="\1";
-	//String line2;
-
+	line1 += "\1";
+	int bedtemp=analog2tempBed(current_bed_raw);
+	if(bedtemp<MAXTEMP)
+	{
+		line1 +=',';
+		line1 +=bedtemp ;
+		line1 +="\1";
+	}
+	
+	//add endstop display
 	line1+= (!digitalRead(X_MIN_PIN))? 'x':' ';
 	line1+= (!digitalRead(X_MAX_PIN))? 'X':' ';
 	line1+= (!digitalRead(Y_MIN_PIN))? 'y':' ';
 	line1+= (!digitalRead(Y_MAX_PIN))? 'Y':' ';
 	line1+= (!digitalRead(Z_MIN_PIN))? 'z':' ';
 	line1+= (!digitalRead(Z_MAX_PIN))? 'Z':' ';
-	if(line1.length()>20)
-	{
-		line1[19]=0;
-	}
-	lcd.setCursor(0,0); //termometer sign
+	int l=line1.length();
+	lcd.setCursor(0,0); 
 	lcd.print(line1);
-	lcd.setCursor(0, 1); //termometer sign
+#if 0
+	lcd.setCursor(0, 1); 
 	
-	char cline2[20];
-	memcpy(cline2,cmdbuffer[(bufindr-1)%BUFSIZE],19); //the last processed line
-	cline2[19]=0;
-	bool print=(strlen(cline2)>1);
+	//copy last printed gcode line from the buffer onto the lcd
+	char cline2[LCD_WIDTH];
+	strncpy(cline2,cmdbuffer[(bufindr-1)%BUFSIZE],LCD_WIDTH-1); //the last processed line
+	bool print=(strlen(cline2)>2);
 	bool empty=false;
-	for(int i=0;i<19;i++)
+	for(int i=0;i<LCD_WIDTH-1;i++)  //fill up with spaces to overwrite old content
 	{
- 		if(cline2[i]==0) 
+ 		if(cline2[i]==0)
 			empty=true;
 		if(empty)
 			cline2[i]=' ';
 	}
-		
-	cline2[19]=0;
+	cline2[LCD_WIDTH-1]=0;  //null termination
 	if(1&&print)
 	{
 		lcd.print(cline2);
-		//lcd.print("     ");
 	}
+#endif  
+
+#endif
 }
 
 void lcd_init()
 {
+#ifdef FANCY_LCD
 	byte Degree[8] =
 	{
 		B01100,
@@ -79,14 +95,13 @@ void lcd_init()
 		B01110
 	};
 
-	lcd.begin(16, 2);
+	lcd.begin(LCD_WIDTH, LCD_HEIGHT);
 	lcd.createChar(1,Degree);
 	lcd.createChar(2,Thermometer);
 	lcd.clear();
-	lcd.print("Sprinter!");
+	lcd.print("booting!");
 	lcd.setCursor(0, 1);
-	lcd.print("Ready to connect");
+	lcd.print("lets sprint!");
+#endif
 }
 
-
-#endif

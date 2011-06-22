@@ -1,18 +1,13 @@
 #ifndef __LCDH
 #define __LCDH
-#include <WProgram.h>
 #include "configuration.h"
 
-#ifdef FANCY_LCD
+//character in width
+#define LCD_WIDTH 20
+#define LCD_HEIGHT 2
 void lcd_status();
 void lcd_init();
-#else
 
-//empty inline if lcd is disabled
-inline void lcd_status(){	}
-inline void lcd_init(){	}
-
-#endif
 
 
 #endif
