@@ -10,7 +10,7 @@
 
 //Comment out to disable SD support
 //#define SDSUPPORT 0
-//#define FANCY_LCD
+#define FANCY_LCD
 
 //Min step delay in microseconds. If you are experiencing missing steps, try to raise the delay microseconds, but be aware this
 // If you enable this, make sure STEP_DELAY_RATIO is disabled.

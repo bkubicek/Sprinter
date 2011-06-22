@@ -100,7 +100,7 @@ long timediff = 0;
 
 // comm variables
 #define MAX_CMD_SIZE 96
-#define BUFSIZE 8
+#define BUFSIZE 16
 char cmdbuffer[BUFSIZE][MAX_CMD_SIZE];
 bool fromsd[BUFSIZE];
 int bufindr = 0;

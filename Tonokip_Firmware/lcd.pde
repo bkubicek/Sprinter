@@ -18,45 +18,30 @@ void lcd_status()
 	if((millis() - previous_millis_lcd) < LCD_UPDATE_INTERVAL)
     return;
   previous_millis_lcd = millis();
-	
-	String line1;
+	char line1[25];
 	static char blink=0;
-	line1=((blink++)%2==0)? (char)2:' ';
-	line1 += int(analog2temp(current_raw));
-	line1 += "/";
-	line1 += int(analog2temp(target_raw));
-	line1 += "\1";
-	int bedtemp=analog2tempBed(current_bed_raw);
-	if(bedtemp<MAXTEMP)
-	{
-		line1 +=',';
-		line1 +=bedtemp ;
-		line1 +="\1";
-	}
+	sprintf(line1,"%c%3i/%3i\1%c%c%c%c%c%c", ((blink++)%2==0)? (char)2:' ',
+		int(analog2temp(current_raw)),
+		int(analog2temp(target_raw)),
+		(!digitalRead(X_MIN_PIN))? 'x':' ',
+		(!digitalRead(X_MAX_PIN))? 'X':' ',
+		(!digitalRead(Y_MIN_PIN))? 'y':' ',
+		(!digitalRead(Y_MAX_PIN))? 'Y':' ',
+		(!digitalRead(Z_MIN_PIN))? 'z':' ',
+		(!digitalRead(Z_MAX_PIN))? 'Z':' ');
 	
-	//add endstop display
-	line1+= (!digitalRead(X_MIN_PIN))? 'x':' ';
-	line1+= (!digitalRead(X_MAX_PIN))? 'X':' ';
-	line1+= (!digitalRead(Y_MIN_PIN))? 'y':' ';
-	line1+= (!digitalRead(Y_MAX_PIN))? 'Y':' ';
-	line1+= (!digitalRead(Z_MIN_PIN))? 'z':' ';
-	line1+= (!digitalRead(Z_MAX_PIN))? 'Z':' ';
-	int l=line1.length();
 	lcd.setCursor(0,0); 
 	lcd.print(line1);
-#if 0
+#if 1
 	lcd.setCursor(0, 1); 
-	
 	//copy last printed gcode line from the buffer onto the lcd
 	char cline2[LCD_WIDTH];
 	strncpy(cline2,cmdbuffer[(bufindr-1)%BUFSIZE],LCD_WIDTH-1); //the last processed line
-	bool print=(strlen(cline2)>2);
-	bool empty=false;
+	cline2[LCD_WIDTH-1]=0;
+	bool print=(strlen(cline2)>0);
 	for(int i=0;i<LCD_WIDTH-1;i++)  //fill up with spaces to overwrite old content
 	{
  		if(cline2[i]==0)
-			empty=true;
-		if(empty)
 			cline2[i]=' ';
 	}
 	cline2[LCD_WIDTH-1]=0;  //null termination
