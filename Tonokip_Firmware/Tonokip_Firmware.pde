@@ -99,9 +99,13 @@ long timediff = 0;
 
 
 // comm variables
-#define MAX_CMD_SIZE 96
+#define BUFCHARACTERS 512
+#define MAX_CMD_SIZE 100
 #define BUFSIZE 16
-char cmdbuffer[BUFSIZE][MAX_CMD_SIZE];
+int cmds_writepos=0;
+char cmds[BUFCHARACTERS];
+char *cmdbuffer[BUFSIZE];
+
 bool fromsd[BUFSIZE];
 int bufindr = 0;
 int bufindw = 0;
@@ -310,7 +314,7 @@ void setup()
   digitalWrite(MAX6675_SS,1);
   pinMode(MAX6675_SS,OUTPUT);
 #endif  
-	memset(cmdbuffer,0,BUFSIZE*MAX_CMD_SIZE);
+	memset(cmds,0,BUFCHARACTERS);
   lcd_init();
 #ifdef SDSUPPORT
 
@@ -326,7 +330,7 @@ void setup()
 #ifdef USE_WATCHDOG
     wd_init(); 
 #endif
-	
+	cmdbuffer[0]=&(cmds[0]);
 }
 
 
@@ -446,7 +450,9 @@ inline void get_command()
 		}
 
 	}
+				cmdbuffer[(bufindw+1)%BUFSIZE]=strlen(cmdbuffer[bufindw])+&(cmdbuffer[bufindw][0]);
         bufindw = (bufindw + 1)%BUFSIZE;
+				
         buflen += 1;
         
       }
