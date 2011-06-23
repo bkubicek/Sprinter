@@ -202,7 +202,57 @@ unsigned long stepper_inactive_time = 0;
   }
 #endif
 
+//#define USE_WATCHDOG
+#define WATCHDOG_TIMEOUT 4
+#define RESET_MANUAL
+#ifdef USE_WATCHDOG
 
+#include	<avr/wdt.h>
+#include	<avr/interrupt.h>
+
+volatile uint8_t timeout_seconds=0;
+
+void(* ctrlaltdelete) (void) = 0;
+
+ISR(WDT_vect) { //Watchdog timer interrupt, called if main program blocks >1sec
+	if(timeout_seconds++ >= WATCHDOG_TIMEOUT)
+	{
+#ifdef FANCY_LCD
+
+#ifdef RESET_MANUAL
+		lcd_status("Please Reset!");
+#elif 
+		lcd_status("Timeout, resetting!");
+#endif
+#endif
+		digitalWrite(HEATER_0_PIN,LOW);
+#ifdef HEATER_1_PIN
+		digitalWrite(HEATER_1_PIN,LOW);
+#endif
+		//disable watchdog, it will survife reboot.
+		WDTCSR |= (1<<WDCE) | (1<<WDE);
+		WDTCSR = 0;
+#ifdef RESET_MANUAL
+		while(1) //wait for user or serial reset
+			;
+#elif
+		ctrlaltdelete();
+#endif
+	}
+}
+
+/// intialise watch dog with a 1 sec interrupt time
+void wd_init() {
+	WDTCSR = (1<<WDCE )|(1<<WDE ); //allow changes
+	WDTCSR = (1<<WDIF)|(1<<WDIE)| (1<<WDCE )|(1<<WDE )|  (1<<WDP2 )|(1<<WDP1)|(0<<WDP0);
+}
+
+/// reset watchdog. MUST be called every 1s after init or avr will reset.
+void wd_reset() {
+	wdt_reset();
+	timeout_seconds=0; //reset counter for resets
+}
+#endif /* USE_WATCHDOG */
 
 void setup()
 { 
@@ -272,12 +322,19 @@ void setup()
   initsd();
 
 #endif
+
+#ifdef USE_WATCHDOG
+    wd_init(); 
+#endif
 	
 }
 
 
 void loop()
 {
+#ifdef USE_WATCHDOG
+	wd_reset();
+#endif
   if(buflen<3)
     get_command();
 #ifdef FANCY_LCD
@@ -559,6 +616,7 @@ inline void process_commands()
         relative_mode = true;
         break;
       case 92: // G92
+				//delay(10000);
         if(code_seen('X')) current_x = code_value();
         if(code_seen('Y')) current_y = code_value();
         if(code_seen('Z')) current_z = code_value();
@@ -1355,6 +1413,9 @@ inline int read_max6675()
 
 inline void manage_heater()
 {
+	#ifdef USE_WATCHDOG
+	//wd_reset();
+	#endif
   if((millis() - previous_millis_heater) < HEATER_CHECK_INTERVAL )
     return;
   previous_millis_heater = millis();

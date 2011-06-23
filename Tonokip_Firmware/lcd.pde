@@ -10,7 +10,11 @@
 
 
 
-
+void lcd_status(char* message)
+{
+	lcd.setCursor(0,0);
+	lcd.print(message);
+}
 
 void lcd_status()
 {
