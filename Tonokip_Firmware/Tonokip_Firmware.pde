@@ -178,9 +178,7 @@ unsigned long stepper_inactive_time = 0;
           Serial.println("openRoot failed");
     else 
             sdactive = true;
-  #ifdef FANCY_LCD
-    lcd_status(sdactive?"SD card ok":"No SD card");
-  #endif 
+    LCD_MESSAGE(sdactive?"SD card ok":"No SD card");
   #endif
   }
   
@@ -220,24 +218,18 @@ void(* ctrlaltdelete) (void) = 0;
 ISR(WDT_vect) { //Watchdog timer interrupt, called if main program blocks >1sec
 	if(timeout_seconds++ >= WATCHDOG_TIMEOUT)
 	{
-#ifdef FANCY_LCD
-
 #ifdef RESET_MANUAL
-		lcd_status("Please Reset!");
+		LCD_MESSAGE("Please Reset!");
 #elif 
-		lcd_status("Timeout, resetting!");
+		LCD_MESSAGE("Timeout, resetting!");
 #endif
-#endif
-		digitalWrite(HEATER_0_PIN,LOW);
-#ifdef HEATER_1_PIN
-		digitalWrite(HEATER_1_PIN,LOW);
-#endif
+		kill();
+		
 		//disable watchdog, it will survife reboot.
 		WDTCSR |= (1<<WDCE) | (1<<WDE);
 		WDTCSR = 0;
 #ifdef RESET_MANUAL
-		while(1) //wait for user or serial reset
-			;
+		while(1); //wait for user or serial reset
 #elif
 		ctrlaltdelete();
 #endif
@@ -340,10 +332,7 @@ void loop()
 #endif
   if(buflen<3)
     get_command();
-#ifdef FANCY_LCD
-  static int cnter=0;
-  lcd_status();
-#endif
+  
   if(buflen){
 #ifdef SDSUPPORT
     if(savetosd){
@@ -355,12 +344,15 @@ void loop()
             file.close();
             savetosd = false;
             Serial.println("Done saving file.");
+						LCD_MESSAGE("Done saving file");
         }
     }else{
+				LCD_STATUS;
         process_commands();
     }
 #else
     process_commands();
+		LCD_STATUS;
 #endif
     buflen = (buflen-1);
     bufindr = (bufindr + 1)%BUFSIZE;
@@ -537,6 +529,8 @@ inline void process_commands()
         }
         break;
       case 28: //G28 Home all Axis one at a time
+				LCD_MESSAGE("HOMEING");
+
         saved_feedrate = feedrate;
         destination_x = 0;
         current_x = 0;
@@ -673,10 +667,12 @@ inline void process_commands()
       case 24: //M24 - Start SD print
         if(sdactive){
             sdmode = true;
+						LCD_MESSAGE("Start SD print");
         }
         break;
       case 25: //M25 - Pause SD print
         if(sdmode){
+						LCD_MESSAGE("SD Pause");
             sdmode = false;
         }
         break;
@@ -716,6 +712,7 @@ inline void process_commands()
             savetosd = true;
             Serial.print("Writing to file: ");
             Serial.println(strchr_pointer + 4);
+						LCD_MESSAGE("Writing to SD");
             }
         }
         break;
@@ -760,6 +757,7 @@ inline void process_commands()
         return;
         //break;
       case 109: // M109 - Wait for extruder heater to reach target.
+				LCD_MESSAGE("Heating...");
         if (code_seen('S')) target_raw = temp2analog(code_value());
         #ifdef WATCHPERIOD
             if(target_raw>current_raw){
@@ -1223,7 +1221,7 @@ void linear_move(unsigned long x_steps_remaining, unsigned long y_steps_remainin
           #ifdef STEP_DELAY_RATIO
           if(timediff >= interval) delayMicroseconds(long_step_delay_ratio * interval / 10000);
           #endif
-          #ifdef STEP_DELAY_MICROS
+          #ifdef STEP_DELAY_MICROSx_steps_per_sqr_second
           if(timediff >= interval) delayMicroseconds(STEP_DELAY_MICROS);
           #endif
         }
@@ -1416,12 +1414,11 @@ inline int read_max6675()
 
 inline void manage_heater()
 {
-	#ifdef USE_WATCHDOG
-	//wd_reset();
-	#endif
-#ifdef FANCY_LCD
-  //lcd_status();
+#ifdef USE_WATCHDOG
+		wd_reset();
 #endif
+	//there is no FANCY_LCD here, because this routine is called within moves, and delays them. one could loose steps.
+		
   if((millis() - previous_millis_heater) < HEATER_CHECK_INTERVAL )
     return;
   previous_millis_heater = millis();
