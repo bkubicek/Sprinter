@@ -7,7 +7,7 @@
 #define LCD_HEIGHT 2
 void lcd_status();
 void lcd_init();
-void lcd_status(char* message);
+void lcd_status(const char* message);
 
 
 

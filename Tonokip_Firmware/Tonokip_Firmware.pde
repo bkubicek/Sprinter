@@ -178,6 +178,9 @@ unsigned long stepper_inactive_time = 0;
           Serial.println("openRoot failed");
     else 
             sdactive = true;
+  #ifdef FANCY_LCD
+    lcd_status(sdactive?"SD card ok":"No SD card");
+  #endif 
   #endif
   }
   
@@ -339,7 +342,7 @@ void loop()
     get_command();
 #ifdef FANCY_LCD
   static int cnter=0;
-  if((cnter++)%10000==0) lcd_status();
+  lcd_status();
 #endif
   if(buflen){
 #ifdef SDSUPPORT
@@ -1416,6 +1419,9 @@ inline void manage_heater()
 	#ifdef USE_WATCHDOG
 	//wd_reset();
 	#endif
+#ifdef FANCY_LCD
+  //lcd_status();
+#endif
   if((millis() - previous_millis_heater) < HEATER_CHECK_INTERVAL )
     return;
   previous_millis_heater = millis();
