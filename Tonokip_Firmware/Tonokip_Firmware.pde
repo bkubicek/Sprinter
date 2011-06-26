@@ -216,36 +216,35 @@ volatile uint8_t timeout_seconds=0;
 void(* ctrlaltdelete) (void) = 0;
 
 ISR(WDT_vect) { //Watchdog timer interrupt, called if main program blocks >1sec
-	if(timeout_seconds++ >= WATCHDOG_TIMEOUT)
-	{
+  if(timeout_seconds++ >= WATCHDOG_TIMEOUT)
+  {
 #ifdef RESET_MANUAL
-		LCD_MESSAGE("Please Reset!");
-#elif 
-		LCD_MESSAGE("Timeout, resetting!");
+    LCD_MESSAGE("Please Reset!");
+#else
+    LCD_MESSAGE("Timeout, resetting!");
 #endif
-		kill();
-		
-		//disable watchdog, it will survife reboot.
-		WDTCSR |= (1<<WDCE) | (1<<WDE);
-		WDTCSR = 0;
+    kill();
+    //disable watchdog, it will survife reboot.
+    WDTCSR |= (1<<WDCE) | (1<<WDE);
+    WDTCSR = 0;
 #ifdef RESET_MANUAL
-		while(1); //wait for user or serial reset
-#elif
-		ctrlaltdelete();
+    while(1); //wait for user or serial reset
+#else
+    ctrlaltdelete();
 #endif
-	}
+  }
 }
 
 /// intialise watch dog with a 1 sec interrupt time
 void wd_init() {
-	WDTCSR = (1<<WDCE )|(1<<WDE ); //allow changes
-	WDTCSR = (1<<WDIF)|(1<<WDIE)| (1<<WDCE )|(1<<WDE )|  (1<<WDP2 )|(1<<WDP1)|(0<<WDP0);
+  WDTCSR = (1<<WDCE )|(1<<WDE ); //allow changes
+  WDTCSR = (1<<WDIF)|(1<<WDIE)| (1<<WDCE )|(1<<WDE )|  (1<<WDP2 )|(1<<WDP1)|(0<<WDP0);
 }
 
 /// reset watchdog. MUST be called every 1s after init or avr will reset.
 void wd_reset() {
-	wdt_reset();
-	timeout_seconds=0; //reset counter for resets
+  wdt_reset();
+  timeout_seconds=0; //reset counter for resets
 }
 #endif /* USE_WATCHDOG */
 
@@ -612,6 +611,7 @@ inline void process_commands()
         break;
       case 90: // G90
         relative_mode = false;
+        delay(10000);
         break;
       case 91: // G91
         relative_mode = true;
@@ -777,7 +777,7 @@ inline void process_commands()
           {
             Serial.print("T:");
             Serial.println( analog2temp(current_raw) ); 
-            LCD_STATUS();
+            LCD_STATUS;
             codenum = millis();
           }
           manage_heater();
@@ -1420,7 +1420,7 @@ inline int read_max6675()
 inline void manage_heater()
 {
 #ifdef USE_WATCHDOG
-		wd_reset();
+  wd_reset();
 #endif
 	//there is no FANCY_LCD here, because this routine is called within moves, and delays them. one could loose steps.
 		

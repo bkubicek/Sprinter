@@ -12,8 +12,15 @@
 
 void lcd_status(const char* message)
 {
-	lcd.setCursor(0,0);
+    if(LCD_HEIGHT>3)
+    	lcd.setCursor(0,3);
+    else
+        lcd.setCursor(0,0);
 	lcd.print(message);
+  int missing=(LCD_WIDTH-strlen(message));
+  if(missing>0)
+  for(int i=0;i<missing;i++)
+    lcd.print(" ");
 }
 
 void lcd_status()
@@ -40,6 +47,7 @@ void lcd_status()
 	lcd.setCursor(0, 1); 
 	//copy last printed gcode line from the buffer onto the lcd
 	char cline2[LCD_WIDTH];
+        memset(cline2,0,LCD_WIDTH);
 	strncpy(cline2,cmdbuffer[(bufindr-1)%BUFSIZE],LCD_WIDTH-1); //the last processed line
 	cline2[LCD_WIDTH-1]=0;
 	bool print=(strlen(cline2)>0);
@@ -53,6 +61,25 @@ void lcd_status()
 	{
 		lcd.print(cline2);
 	}
+        if(LCD_HEIGHT>2)
+        {
+        lcd.setCursor(0, 2);  
+	strncpy(cline2,cmdbuffer[(bufindr-2)%BUFSIZE],LCD_WIDTH-1); //the last processed line
+	cline2[LCD_WIDTH-1]=0;
+	bool print=(strlen(cline2)>0);
+	for(int i=0;i<LCD_WIDTH-1;i++)  //fill up with spaces to overwrite old content
+	{
+ 		if(cline2[i]==0)
+			cline2[i]=' ';
+	}
+	cline2[LCD_WIDTH-1]=0;  //null termination
+	if(1&&print)
+	{
+		lcd.print(cline2);
+	} 
+          
+        }
+        
 #endif  
 
 #endif

@@ -4,7 +4,7 @@
 
 //character in width
 #define LCD_WIDTH 20
-#define LCD_HEIGHT 2
+#define LCD_HEIGHT 4
 void lcd_status();
 void lcd_init();
 void lcd_status(const char* message);

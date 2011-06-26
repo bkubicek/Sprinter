@@ -12,8 +12,9 @@
 #define SDSUPPORT 0
 #define FANCY_LCD
 
-//if the next line is active, the controller will shut down safely if it detects a firmware freeze.
-#define USE_WATCHDOG
+//if the next line is active, the controller will shut down safely if it detects a firmware freeze
+//not working on an arduino mega2560 right now
+//#define USE_WATCHDOG
 #define WATCHDOG_TIMEOUT 4
 #define RESET_MANUAL
 
