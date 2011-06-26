@@ -9,7 +9,7 @@
 #define MOTHERBOARD 7
 
 //Comment out to disable SD support
-//#define SDSUPPORT 0
+#define SDSUPPORT 0
 #define FANCY_LCD
 
 //Min step delay in microseconds. If you are experiencing missing steps, try to raise the delay microseconds, but be aware this
@@ -29,8 +29,8 @@
 //Acceleration settings
 #ifdef RAMP_ACCELERATION
 float min_units_per_second = 35.0; // the minimum feedrate
-long max_acceleration_units_per_sq_second = 1500; // Max acceleration in mm/s^2 for printing moves
-long max_travel_acceleration_units_per_sq_second = 3000; // Max acceleration in mm/s^2 for travel moves
+long max_acceleration_units_per_sq_second = 7000; // Max acceleration in mm/s^2 for printing moves
+long max_travel_acceleration_units_per_sq_second = 6000; // Max acceleration in mm/s^2 for travel moves, less because of less torque at high speeds
 #endif
 #ifdef EXP_ACCELERATION
 float full_velocity_units = 10; // the units between minimum and G1 move feedrate
@@ -68,7 +68,7 @@ float min_constant_speed_units = 2; // the minimum units of an accelerated move 
 //If the temperature has not increased at the end of that period, the target temperature is set to zero. It can be reset with another M104/M109
 //#define WATCHPERIOD 5000 //5 seconds
 //The minimal temperature defines the temperature below which the heater will not be enabled
-//#define MINTEMP 
+#define MINTEMP 5
 
 //Experimental max temp
 //When temperature exceeds max temp, your bot will halt.
