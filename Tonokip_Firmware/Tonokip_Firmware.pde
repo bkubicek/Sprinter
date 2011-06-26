@@ -205,9 +205,7 @@ unsigned long stepper_inactive_time = 0;
   }
 #endif
 
-//#define USE_WATCHDOG
-#define WATCHDOG_TIMEOUT 4
-#define RESET_MANUAL
+
 #ifdef USE_WATCHDOG
 
 #include	<avr/wdt.h>
@@ -357,6 +355,10 @@ void loop()
 #endif
     buflen = (buflen-1);
     bufindr = (bufindr + 1)%BUFSIZE;
+    }
+    else
+    {
+      LCD_STATUS;
     }
   //check heater every n milliseconds
       manage_heater();
@@ -775,6 +777,7 @@ inline void process_commands()
           {
             Serial.print("T:");
             Serial.println( analog2temp(current_raw) ); 
+            LCD_STATUS();
             codenum = millis();
           }
           manage_heater();

@@ -12,6 +12,11 @@
 #define SDSUPPORT 0
 #define FANCY_LCD
 
+//if the next line is active, the controller will shut down safely if it detects a firmware freeze.
+#define USE_WATCHDOG
+#define WATCHDOG_TIMEOUT 4
+#define RESET_MANUAL
+
 //Min step delay in microseconds. If you are experiencing missing steps, try to raise the delay microseconds, but be aware this
 // If you enable this, make sure STEP_DELAY_RATIO is disabled.
 #define STEP_DELAY_MICROS 1
