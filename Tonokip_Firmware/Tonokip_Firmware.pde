@@ -250,6 +250,7 @@ void wd_reset() {
 
 void setup()
 { 
+  //beep();
   Serial.begin(BAUDRATE);
   Serial.println("start");
   for(int i = 0; i < BUFSIZE; i++){
@@ -611,7 +612,7 @@ inline void process_commands()
         break;
       case 90: // G90
         relative_mode = false;
-        delay(10000);
+        //delay(10000);
         break;
       case 91: // G91
         relative_mode = true;
