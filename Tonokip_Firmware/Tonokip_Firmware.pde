@@ -650,9 +650,12 @@ inline void process_commands()
         break;
       case 23: //M23 - Select file
         if(sdactive){
+					LCD_MESSAGE("active")
             sdmode = false;
             file.close();
             starpos = (strchr(strchr_pointer + 4,'*'));
+						if(starpos==NULL)
+							starpos = (strchr(strchr_pointer + 4,'#'));
             if(starpos!=NULL)
                 *(starpos-1)='\0';
             if (file.open(&root, strchr_pointer + 4, O_READ)) {
@@ -668,6 +671,10 @@ inline void process_commands()
                 Serial.println("file.open failed");
             }
         }
+        else
+				{
+					Serial.println("SD not ready");
+				}
         break;
       case 24: //M24 - Start SD print
         if(sdactive){
@@ -778,10 +785,11 @@ inline void process_commands()
           {
             Serial.print("T:");
             Serial.println( analog2temp(current_raw) ); 
-            LCD_STATUS;
+            
             codenum = millis();
           }
           manage_heater();
+					LCD_STATUS;
         }
         break;
       case 190: // M190 - Wait bed for heater to reach target.

@@ -11,9 +11,27 @@ public:
   virtual void activate()=0;
 	virtual void update()=0;
 
-  short int line;
-  short int items;
-  short int xshift;
+  int8_t line;
+  int8_t items;
+  int8_t xshift;
+	int8_t firstline;
+
+	inline void emptyline()
+	{
+		if(items>0)
+			{
+				lcd.setCursor((line/(4-firstline))*xshift,firstline+line%(4-firstline));
+				lcd.print(" ");
+			}
+	};
+	inline void fillline()
+	{
+		if(items>0)
+			{
+				lcd.setCursor((line/(4-firstline))*xshift,firstline+line%(4-firstline));
+				lcd.print("~");
+			}
+	};
 };
 
 #define MAXPAGES 10
@@ -74,7 +92,7 @@ public:
   };
 
 public:
-  short int curLine;
+  //short int curLine;
   short int curPage;
   short int maxPage;
   MenuPage *pages[MAXPAGES];

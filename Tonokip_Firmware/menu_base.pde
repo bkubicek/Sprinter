@@ -12,7 +12,7 @@ MenuBase::MenuBase()
 {
 //lcd=_lcd;
   curPage=0;
-  curLine=0;
+  //curLine=0;
   maxPage=0; 
   for(int i=0;i<MAXPAGES;i++)
     pages[i]=0;
@@ -29,7 +29,9 @@ void MenuBase::addMenuPage(MenuPage *_newpage)
     
     pages[maxPage]=_newpage;
     if(maxPage==0)
+		{
      pages[0]->activate();
+		}
     maxPage++;
   }
 }
@@ -38,44 +40,26 @@ void MenuBase::addMenuPage(MenuPage *_newpage)
 MenuPage::MenuPage()
 {
   line=0;
+	firstline=1;
 }
 
 void MenuPage::lineUp()
 {
-  if(items>0)
-  {
-    lcd.setCursor((line/3)*xshift,1+line%3);
-    lcd.print(" ");
-  }
+	emptyline();
   if(line==0)
     line=items;
    else
     line--;
-  if(items>0)
-  {
-    lcd.setCursor((line/3)*xshift,1+line%3);
-    lcd.print("~");
-  }
-  
+	fillline();
 }
 
 void MenuPage::lineDown()
 {
-  //empty indicator
-  if(items>0)
-  {
-    lcd.setCursor((line/3)*xshift,1+line%3);
-    lcd.print(" ");
-  }
+  emptyline();
   if(line==items)
     line=0;
    else
     line++;
-  if(items>0)
-  {
-    lcd.setCursor((line/3)*xshift,1+line%3);
-    lcd.print("~");
-  }
-  
+  fillline();
 }
 

@@ -30,6 +30,7 @@ char *ftostr31(const float &x)
 	//sprintf(conv,"%5.1f",x);
 	int xx=x*10;
 	conv[0]=(xx>=0)?'+':'-';
+	xx=abs(xx);
 	conv[1]=(xx/1000)%10+'0';
 	conv[2]=(xx/100)%10+'0';
 	conv[3]=(xx/10)%10+'0';
@@ -44,6 +45,7 @@ char *ftostr51(const float &x)
 {
 	int xx=x*10;
 	conv[0]=(xx>=0)?'+':'-';
+	xx=abs(xx);
 	conv[1]=(xx/10000)%10+'0';
 	conv[2]=(xx/1000)%10+'0';
 	conv[3]=(xx/100)%10+'0';
@@ -54,6 +56,26 @@ char *ftostr51(const float &x)
 	return conv;
 }
 
+char *fillto(int8_t n,char *c)
+{
+	static char ret[25];
+	bool endfound=false;
+	for(int8_t i=0;i<n;i++)
+	{
+		ret[i]=c[i];
+		if(c[i]==0)
+		{
+			endfound=true;
+		}
+		if(endfound)
+		{
+			ret[i]=' ';
+		}
+	}
+	ret[n]=0;
+	return ret;
+	
+}
 
 #include "menu_base.h"
 MenuBase menu;
@@ -92,47 +114,38 @@ void PageWatch::activate()
   (!digitalRead(Z_MAX_PIN))? 'Z':' ');
 
   lcd.setCursor(0,0); 
-  lcd.print(line1);
-#if 1
+  lcd.print(fillto(20,line1));
+#if 0
   lcd.setCursor(0, 1); 
   //copy last printed gcode line from the buffer onto the lcd
   char cline2[LCD_WIDTH];
   memset(cline2,0,LCD_WIDTH);
-  strncpy(cline2,cmdbuffer[(bufindr-1)%BUFSIZE],LCD_WIDTH-1); //the last processed line
+  strncpy(cline2,cmdbuffer[(abs(bufindr-1))%BUFSIZE],LCD_WIDTH-1); //the last processed line
   cline2[LCD_WIDTH-1]=0;
   bool print=(strlen(cline2)>0);
-  for(int i=0;i<LCD_WIDTH-1;i++)  //fill up with spaces to overwrite old content
-  {
-    if(cline2[i]==0)
-      cline2[i]=' ';
-  }
-  cline2[LCD_WIDTH-1]=0;  //null termination
+
   if(1&&print)
   {
-    lcd.print(cline2);
+    lcd.print(fillto(20,cline2));
   }
   if(LCD_HEIGHT>2)
   {
     lcd.setCursor(0, 2);  
-    strncpy(cline2,cmdbuffer[(bufindr-2)%BUFSIZE],LCD_WIDTH-1); //the last processed line
+    strncpy(cline2,cmdbuffer[(abs(bufindr-2))%BUFSIZE],LCD_WIDTH-1); //the last processed line
     cline2[LCD_WIDTH-1]=0;
     bool print=(strlen(cline2)>0);
-    for(int i=0;i<LCD_WIDTH-1;i++)  //fill up with spaces to overwrite old content
-    {
-      if(cline2[i]==0)
-        cline2[i]=' ';
-    }
-    cline2[LCD_WIDTH-1]=0;  //null termination
+    
     if(1&&print)
     {
-      lcd.print(cline2);
+      lcd.print(fillto(20,cline2));
     } 
     lcd.setCursor(0,3);
-		lcd.print(messagetext);
+		lcd.print(fillto(20,messagetext));
 
   }
 
-#endif  
+#endif
+	fillline();
 }
 
 
@@ -147,7 +160,7 @@ public:
 };
 
 extern float current_x, current_y , current_z , current_e ;
-
+float target_x,target_y,target_z,target_e;
 
 
 
@@ -158,34 +171,49 @@ PageMove::PageMove()
 
 int lastline=-1;
 int lastencoder=0;
+int step=2;
 void PageMove::update()
 {
 	
-	if(menu.curLine!=lastline)
+	if(line!=lastline)
 	{
 		lastencoder=encoderpos;
+		target_x=current_x;
+		target_y=current_y;
+		target_z=current_z;
+		target_e=current_e;
 	}
 	else //update on the same selected line
 		if(lastencoder!=encoderpos) //change in encoder
 	{
 		int d=encoderpos-lastencoder;
-		//switch(menu.curLine)
+		char c=';';
+		float cur=0;
+		if(line==4)
 		{
-			//case 0:
-				char com[20];
-				sprintf(com,"G1 X%.1f",d/10.);
-				Serial.println(d);
-				enquecommand(com);
-				//break;
+			step+=d;
+			if(step<1) step=1;
 		}
-		
+		else
+		{
+			switch(line)
+			{
+				case 0:c='X';cur=target_x+=step*d/10.;break;
+				case 1:c='Y';cur=target_y+=step*d/10.;break;
+				case 2:c='Z';cur=target_z+=step*d/10.;break;
+				case 3:c='E';cur=target_e+=step*d/10.;break;
+			}
+			char com[20];
+			sprintf(com,"G1 %c%i.%i",c,int(cur),int(fabs(cur*10))%10);
+			enquecommand(com);
+		}
 		lastencoder=encoderpos;
 	}
 	else
 	{
-		Serial.print("encoder: ");Serial.println(encoderpos);
+		//Serial.print("encoder: ");Serial.println(encoderpos);
 	}
-	lastline=menu.curLine;
+	lastline=line;
   activate();
 }
 
@@ -196,11 +224,10 @@ void PageMove::activate()
  lcd.setCursor(0,1);
  lcd.print(" X");lcd.print(ftostr31(current_x));lcd.print("   E");lcd.print(ftostr51(current_e));
  lcd.setCursor(0,2);
- lcd.print(" Y");lcd.print(ftostr31(current_y));lcd.print("            ");
+ lcd.print(" Y");lcd.print(ftostr31(current_y));lcd.print("   St");lcd.print(ftostr31(step/10.));lcd.print(" ");
  lcd.setCursor(0,3);
  lcd.print(" Z");lcd.print(ftostr31(current_z));lcd.print("            ");
- lcd.setCursor((line/3)*10,1+line%3);
- lcd.print("~");
+ fillline();
 }
 
 class PageHome:public MenuPage
@@ -215,7 +242,7 @@ public:
 
 PageHome::PageHome()
 {
-  xshift=10;items=3;
+  xshift=10;items=5;
 }
 
 void PageHome::update()
@@ -228,6 +255,9 @@ void PageHome::update()
 			case 0:enquecommand("G28 X");break;
 			case 1:enquecommand("G28 Y");break;
 			case 2:enquecommand("G28 Z");break;
+			case 3:enquecommand("G92 X0");break;
+			case 4:enquecommand("G92 Y0");break;
+			case 5:enquecommand("G92 Z0");break;
 			default:
 				;
 		}
@@ -238,15 +268,14 @@ void PageHome::update()
 void PageHome::activate()
 {
  lcd.setCursor(0,0);
- lcd.print("Home         ");
+ lcd.print(fillto(20,"Home"));
  lcd.setCursor(0,1);
- lcd.print(" X                 ");
+ lcd.print(fillto(20," X         ZERO"));
  lcd.setCursor(0,2);
- lcd.print(" Y                 ");
+ lcd.print(fillto(20," Y         ZERO"));
  lcd.setCursor(0,3);
- lcd.print(" Z                 ");
- lcd.setCursor((line/3)*10,1+line%3);
- lcd.print("~");
+ lcd.print(fillto(20," Z         ZERO"));
+	fillline();
 }
 
 
@@ -263,7 +292,7 @@ public:
 
 PageSd::PageSd()
 {
-  xshift=10;items=8;
+  xshift=10;items=7;firstline=0;
 }
 
 void PageSd::update()
@@ -287,13 +316,7 @@ void PageSd::update()
 
     // only list subdirectories and files
     if (!DIR_IS_FILE_OR_SUBDIR(&p)) continue;
-   
 
-    // print file name with possible blank fill
-    //root.printDirName(*p, flags & (LS_DATE | LS_SIZE) ? 14 : 0);
-
-     //strncpy(filename,(char*)&(p.name[0]),11);
-     //Serial.println(filename);
     uint8_t writepos=0;
     for (uint8_t i = 0; i < 11; i++) {
 
@@ -310,12 +333,15 @@ void PageSd::update()
 
   }
   char cmd[50];
+	for(int i=0;i<strlen(filename);i++)
+		filename[i]=tolower(filename[i]);
 	sprintf(cmd,"M23 %s",filename);
+	//sprintf(cmd,"M115");
 	enquecommand(cmd);
 	enquecommand("M24");
 		
 	}
-  activate();
+  //activate();
 }
 
 void PageSd::activate()
@@ -337,11 +363,6 @@ void PageSd::activate()
     if (!DIR_IS_FILE_OR_SUBDIR(&p)) continue;
    
 
-    // print file name with possible blank fill
-    //root.printDirName(*p, flags & (LS_DATE | LS_SIZE) ? 14 : 0);
-
-     //strncpy(filename,(char*)&(p.name[0]),11);
-     //Serial.println(filename);
     uint8_t writepos=0;
     for (uint8_t i = 0; i < 11; i++) {
 
@@ -354,11 +375,13 @@ void PageSd::activate()
     filename[writepos++]=0;
 		if(cnt>8)
 			break;
-		lcd.setCursor(1+10*(cnt/4),cnt%4);lcd.print(filename);
+		lcd.setCursor(0+10*(cnt/4),cnt%4);
+		lcd.print(" ");
+		lcd.print(fillto(9,filename));
      cnt++;  
 
   }
-	
+	fillline();
 }
 
 
@@ -389,7 +412,7 @@ void lcd_status()
 {
   
 #ifdef FANCY_LCD
-  if(millis() - previous_millis_buttons<100)
+  if(millis() - previous_millis_buttons<5)
     return;
   buttons_check();
 	buttons_process();
@@ -433,7 +456,7 @@ void lcd_init()
   lcd.createChar(1,Degree);
   lcd.createChar(2,Thermometer);
   lcd.clear();
-  lcd.print("booting!");
+  lcd.print(fillto(20,"booting!"));
   lcd.setCursor(0, 1);
   lcd.print("lets sprint!");
 #endif
@@ -490,7 +513,7 @@ void enquecommand(const char *cmd)
   {
     //this is dangerous if a mixing of serial and this happsens
     strcpy(&(cmdbuffer[bufindw][0]),cmd);
-    Serial.print("en:");Serial.print(cmdbuffer[bufindw]);
+    Serial.print("en:");Serial.println(cmdbuffer[bufindw]);
     bufindw= (bufindw + 1)%BUFSIZE;
     buflen += 1;
   }
