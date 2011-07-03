@@ -2,12 +2,17 @@
 #define __LCDH
 #include "configuration.h"
 
-//character in width
+//lcd display size
 #define LCD_WIDTH 20
 #define LCD_HEIGHT 4
+
+//arduino pin witch triggers an piezzo beeper
+#define BEEPER 18
+
 void lcd_status();
 void lcd_init();
 void lcd_status(const char* message);
+void beep();
 
 #define LCD_MESSAGE(x) lcd_status(x);
 #define LCD_STATUS lcd_status()
