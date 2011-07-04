@@ -12,6 +12,7 @@
 
 void lcd_status(const char* message)
 {
+	#ifdef FANCY_LCD
     if(LCD_HEIGHT>3)
     	lcd.setCursor(0,3);
     else
@@ -21,6 +22,7 @@ void lcd_status(const char* message)
   if(missing>0)
   for(int i=0;i<missing;i++)
     lcd.print(" ");
+#endif
 }
 
 void lcd_status()
@@ -43,7 +45,8 @@ void lcd_status()
 	
 	lcd.setCursor(0,0); 
 	lcd.print(line1);
-#if 1
+#if 1 
+	//if this branch is enabled, it causes noticeable latency
 	lcd.setCursor(0, 1); 
 	//copy last printed gcode line from the buffer onto the lcd
 	char cline2[LCD_WIDTH];

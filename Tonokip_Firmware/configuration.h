@@ -10,7 +10,7 @@
 
 //Comment out to disable SD support
 #define SDSUPPORT 0
-#define FANCY_LCD
+//#define FANCY_LCD
 
 //if the next line is active, the controller will shut down safely if it detects a firmware freeze
 //not working on an arduino mega2560 right now
